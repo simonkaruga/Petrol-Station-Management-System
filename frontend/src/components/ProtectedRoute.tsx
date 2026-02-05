@@ -1,12 +1,14 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
+import { isAuthenticated, isAdmin } from '../utils/auth';
 
-const ProtectedRoute = ({ children }) => {
-  const location = useLocation();
-  const isAuthenticated = localStorage.getItem('token');
+const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" />;
+  }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  if (requireAdmin && !isAdmin()) {
+    return <Navigate to="/" />;
   }
 
   return children;

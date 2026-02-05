@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "simon",
+    "password": null,
+    "database": "wakaruku_petrol_db",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "simon",
+    "password": null,
+    "database": "wakaruku_petrol_test",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "simon",
+    "password": null,
+    "database": "wakaruku_petrol_db",
+    "host": "localhost",
+    "dialect": "postgres"
+  }
+}

@@ -48,6 +48,50 @@ src/
 
 ## Installation
 
+### Create React App Setup
+
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Create React App:
+   ```bash
+   npx create-react-app .
+   ```
+
+3. Install dependencies:
+   ```bash
+   npm install react-router-dom axios chart.js react-chartjs-2 date-fns
+   ```
+
+4. Copy all the code above into their respective files in the src/ directory.
+
+5. Update `public/index.html`:
+   ```html
+   <!DOCTYPE html>
+   <html lang="en">
+     <head>
+       <meta charset="utf-8" />
+       <meta name="viewport" content="width=device-width, initial-scale=1" />
+       <title>Wakaruku Petrol Station</title>
+     </head>
+     <body>
+       <noscript>You need to enable JavaScript to run this app.</noscript>
+       <div id="root"></div>
+     </body>
+   </html>
+   ```
+
+6. Start the app:
+   ```bash
+   npm start
+   ```
+
+### Quick Start (Already Set Up)
+
+If the project is already set up, simply:
+
 1. Navigate to the frontend directory:
    ```bash
    cd frontend

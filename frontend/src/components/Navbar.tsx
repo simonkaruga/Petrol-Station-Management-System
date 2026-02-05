@@ -1,23 +1,26 @@
 import React from 'react';
+import { logout, getUser } from '../utils/auth';
 
 const Navbar = () => {
+  const user = getUser();
+
   return (
-    <nav className="bg-blue-600 text-white p-4 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="text-xl font-bold">
-          Wakaruku Petrol Station
-        </div>
-        <div className="flex space-x-4">
-          <a href="/dashboard" className="hover:text-blue-200">Dashboard</a>
-          <a href="/shift-report" className="hover:text-blue-200">Shift Report</a>
-          <a href="/delivery" className="hover:text-blue-200">Delivery</a>
-          <a href="/credit" className="hover:text-blue-200">Credit</a>
-          <a href="/expenses" className="hover:text-blue-200">Expenses</a>
-          <a href="/reports" className="hover:text-blue-200">Reports</a>
-          <a href="/settings" className="hover:text-blue-200">Settings</a>
+    <header className="bg-white shadow-sm border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <h2 className="text-xl font-semibold text-gray-900">Wakaruku Petrol Station</h2>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">Welcome, {user?.username}</span>
+            <button 
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              onClick={logout}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

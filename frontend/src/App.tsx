@@ -1,8 +1,7 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import ProtectedRoute from './components/ProtectedRoute';
-import Layout from './components/Layout';
+import { isAuthenticated, isAdmin } from './utils/auth';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ShiftReport from './pages/ShiftReport';
@@ -11,82 +10,83 @@ import Credit from './pages/Credit';
 import Expenses from './pages/Expenses';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import ProtectedRoute from './components/ProtectedRoute';
+import './App.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gray-100">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/"
+          element={
             <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
+              <Dashboard />
             </ProtectedRoute>
-          } />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/shift-report" element={
-            <ProtectedRoute>
-              <Layout>
-                <ShiftReport />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/delivery" element={
-            <ProtectedRoute>
-              <Layout>
-                <Delivery />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/credit" element={
-            <ProtectedRoute>
-              <Layout>
-                <Credit />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/expenses" element={
-            <ProtectedRoute>
-              <Layout>
-                <Expenses />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <Layout>
-                <Reports />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <Layout>
-                <Settings />
-              </Layout>
-            </ProtectedRoute>
-          } />
-        </Routes>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-          }}
+          }
         />
-      </div>
-    </BrowserRouter>
+        <Route
+          path="/shift-report"
+          element={
+            <ProtectedRoute>
+              <ShiftReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/delivery"
+          element={
+            <ProtectedRoute>
+              <Delivery />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/credit"
+          element={
+            <ProtectedRoute>
+              <Credit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/expenses"
+          element={
+            <ProtectedRoute>
+              <Expenses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute requireAdmin>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
+    </Router>
   );
 }
 
