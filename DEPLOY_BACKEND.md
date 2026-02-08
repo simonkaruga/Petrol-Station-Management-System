@@ -25,13 +25,15 @@
 2. Connect your GitHub repository: `simonkaruga/Wakaruku-Petrol-Station-Management-System`
 3. Configure:
    - **Name**: `wakaruku-backend`
-   - **Region**: Same as database
+   - **Region**: ⚠️ **MUST match database region** (e.g., Oregon)
    - **Branch**: `main`
    - **Root Directory**: `backend`
    - **Runtime**: Node
    - **Build Command**: `npm install`
    - **Start Command**: `npm start`
    - **Plan**: Free
+
+⚠️ **CRITICAL**: Backend and database MUST be in the same region for internal connection to work!
 
 ## Step 3: Set Environment Variables
 
@@ -106,20 +108,97 @@ Should return:
 
 ## Troubleshooting
 
-### Database Connection Failed
-- Verify DATABASE_URL is correct
-- Check database is in same region
-- Ensure SSL is enabled in config
+### 🔴 Database Connection Failed
+
+#### 🔑 Why this happens:
+
+1. **DATABASE_URL is wrong**
+   - Using localhost instead of Render's internal DB URL
+   - Typos in username/password/dbname/port
+
+2. **Region mismatch**
+   - Backend and Postgres are in different regions → internal connection fails
+
+3. **SSL / Postgres config**
+   - Render's managed Postgres requires SSL
+   - Sequelize / Node Postgres needs SSL enabled
+
+#### 🔧 How to fix step by step:
+
+**1️⃣ Confirm DATABASE_URL**
+
+It should look like this (exactly):
+```
+postgresql://username:password@render-db-host:5432/dbname
+```
+
+✅ **Do this:**
+- Copy **Internal Database URL** from your Render Postgres service
+- Do NOT use localhost or external URL
+- Set it in Render Environment Variables:
+  ```
+  DATABASE_URL=postgresql://username:password@host:5432/database
+  ```
+
+**2️⃣ Check Regions**
+- Go to Postgres service → Check Region (e.g., Oregon)
+- Go to backend service → Must match exactly (e.g., Oregon)
+- If they differ, redeploy backend in the same region as DB
+
+**3️⃣ Verify SSL is enabled**
+
+Your config files already have SSL enabled:
+- `backend/config/database.js` ✅
+- `backend/config/config.js` ✅
+
+Both include:
+```javascript
+ssl: {
+  require: true,
+  rejectUnauthorized: false
+}
+```
+
+**4️⃣ Restart backend**
+- After fixing DATABASE_URL, click **Manual Deploy** → **Deploy latest commit**
+- Watch Logs → should now show:
+  ```
+  Server running on port 10000
+  ✅ Database connected successfully
+  ```
+
+**💡 Test connection locally:**
+```bash
+psql postgresql://username:password@host:5432/dbname
+```
+If it connects locally, backend will also connect on Render.
+
+---
+
+---
 
 ### Build Failed
-- Check build logs
-- Verify package.json is correct
-- Ensure all dependencies are listed
+- Check build logs in Render dashboard
+- Verify `package.json` has all dependencies
+- Ensure `npm install` completes successfully
+- Check Node version compatibility
 
-### App Crashes
-- Check application logs
-- Verify all environment variables are set
-- Check database connection
+### App Crashes on Start
+- Check application logs in Render dashboard
+- Verify all environment variables are set correctly
+- Ensure DATABASE_URL is the Internal URL (not External)
+- Check that JWT_SECRET and JWT_REFRESH_SECRET are set
+
+### Port Issues
+- Render automatically assigns port (usually 10000)
+- Your app should use `process.env.PORT` (already configured)
+- Don't hardcode port 5000 in production
+
+### Tables Not Created
+- After first successful deployment, run database setup:
+  1. Go to service → **Shell** tab
+  2. Run: `npm run setup`
+  3. Or manually run SQL from `setup-manual.sql`
 
 ## Your Backend URL
 
