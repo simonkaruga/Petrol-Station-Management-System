@@ -5,7 +5,7 @@ const Product = require('../models/product');
 const Inventory = require('../models/inventory');
 const PriceHistory = require('../models/priceHistory');
 const User = require('../models/user');
-const { authenticate, canManageProducts } = require('../middleware/auth');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const router = express.Router();
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Private
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const { page = 1, limit = 10, category, search } = req.query;
     const offset = (page - 1) * limit;
@@ -65,7 +65,7 @@ router.get('/', authenticate, async (req, res, next) => {
 // @desc    Get single product
 // @route   GET /api/products/:id
 // @access  Private
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/:id', authenticateToken, async (req, res, next) => {
   try {
     const product = await Product.findByPk(req.params.id, {
       include: [
@@ -95,8 +95,8 @@ router.get('/:id', authenticate, async (req, res, next) => {
 // @route   POST /api/products
 // @access  Private
 router.post('/', 
-  authenticate, 
-  canManageProducts,
+  authenticateToken, 
+  requirePermission('manage_products'),
   [
     body('name').notEmpty().withMessage('Product name is required'),
     body('category').isIn(['fuel', 'lubricant', 'accessory', 'service']).withMessage('Invalid category'),
@@ -177,8 +177,8 @@ router.post('/',
 // @route   PUT /api/products/:id
 // @access  Private
 router.put('/:id', 
-  authenticate, 
-  canManageProducts,
+  authenticateToken, 
+  requirePermission('manage_products'),
   [
     body('name').optional().notEmpty().withMessage('Product name cannot be empty'),
     body('category').optional().isIn(['fuel', 'lubricant', 'accessory', 'service']).withMessage('Invalid category'),
@@ -305,7 +305,7 @@ router.put('/:id',
 // @desc    Delete product
 // @route   DELETE /api/products/:id
 // @access  Private
-router.delete('/:id', authenticate, canManageProducts, async (req, res, next) => {
+router.delete('/:id', authenticateToken, requirePermission('manage_products'), async (req, res, next) => {
   try {
     const product = await Product.findByPk(req.params.id);
 
@@ -337,7 +337,7 @@ router.delete('/:id', authenticate, canManageProducts, async (req, res, next) =>
 // @desc    Get low stock products
 // @route   GET /api/products/low-stock
 // @access  Private
-router.get('/low-stock', authenticate, async (req, res, next) => {
+router.get('/low-stock', authenticateToken, async (req, res, next) => {
   try {
     const products = await Product.findAll({
       include: [
@@ -367,7 +367,7 @@ router.get('/low-stock', authenticate, async (req, res, next) => {
 // @desc    Get product price history
 // @route   GET /api/products/:id/price-history
 // @access  Private
-router.get('/:id/price-history', authenticate, async (req, res, next) => {
+router.get('/:id/price-history', authenticateToken, async (req, res, next) => {
   try {
     const product = await Product.findByPk(req.params.id);
     

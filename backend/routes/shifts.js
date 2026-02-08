@@ -4,8 +4,9 @@ const { Op, Sequelize } = require('sequelize');
 const Shift = require('../models/shift');
 const Sale = require('../models/sale');
 const Expense = require('../models/expense');
+const Product = require('../models/product');
 const User = require('../models/user');
-const { authenticate, canManageSales } = require('../middleware/auth');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
@@ -13,7 +14,7 @@ const router = express.Router();
 // @desc    Get all shifts
 // @route   GET /api/shifts
 // @access  Private
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const { page = 1, limit = 20, userId, status, startDate, endDate } = req.query;
     const offset = (page - 1) * limit;
@@ -71,7 +72,7 @@ router.get('/', authenticate, async (req, res, next) => {
 // @desc    Get single shift
 // @route   GET /api/shifts/:id
 // @access  Private
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/:id', authenticateToken, async (req, res, next) => {
   try {
     const shift = await Shift.findByPk(req.params.id, {
       include: [
@@ -119,8 +120,8 @@ router.get('/:id', authenticate, async (req, res, next) => {
 // @route   POST /api/shifts
 // @access  Private
 router.post('/', 
-  authenticate, 
-  canManageSales,
+  authenticateToken, 
+  requirePermission('manage_sales'),
   [
     body('openingCash').isNumeric().withMessage('Opening cash must be a number')
   ],
@@ -169,7 +170,7 @@ router.post('/',
 // @desc    Close shift
 // @route   PUT /api/shifts/:id/close
 // @access  Private
-router.put('/:id/close', authenticate, canManageSales, async (req, res, next) => {
+router.put('/:id/close', authenticateToken, requirePermission('manage_sales'), async (req, res, next) => {
   try {
     const shift = await Shift.findByPk(req.params.id);
     if (!shift) {
@@ -217,7 +218,7 @@ router.put('/:id/close', authenticate, canManageSales, async (req, res, next) =>
 // @desc    Get shift summary
 // @route   GET /api/shifts/:id/summary
 // @access  Private
-router.get('/:id/summary', authenticate, async (req, res, next) => {
+router.get('/:id/summary', authenticateToken, async (req, res, next) => {
   try {
     const shift = await Shift.findByPk(req.params.id);
     if (!shift) {

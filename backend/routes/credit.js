@@ -1,26 +1,29 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { Op, Sequelize } = require('sequelize');
-const CreditTransaction = require('../models/creditTransaction');
-const Sale = require('../models/sale');
-const User = require('../models/user');
-const { authenticate, canManageSales } = require('../middleware/auth');
+const { CreditCustomer, CreditTransaction, User } = require('../models');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
+const { activityLogger } = require('../middleware/activityLogger');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
 
-// @desc    Get all credit transactions
-// @route   GET /api/credit
+// @desc    Get all credit customers
+// @route   GET /api/credit/customers
 // @access  Private
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/customers', authenticateToken, async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, customerName, status, startDate, endDate } = req.query;
+    const { page = 1, limit = 20, search, status } = req.query;
     const offset = (page - 1) * limit;
 
     const where = {};
     
-    if (customerName) {
-      where.customerName = { [Op.iLike]: `%${customerName}%` };
+    if (search) {
+      where[Op.or] = [
+        { customerName: { [Op.iLike]: `%${search}%` } },
+        { phoneNumber: { [Op.iLike]: `%${search}%` } },
+        { vehicleRegistration: { [Op.iLike]: `%${search}%` } }
+      ];
     }
     
     if (status === 'active') {
@@ -28,43 +31,27 @@ router.get('/', authenticate, async (req, res, next) => {
     } else if (status === 'inactive') {
       where.isActive = false;
     }
-    
-    if (startDate || endDate) {
-      where.creditDate = {};
-      if (startDate) {
-        where.creditDate[Op.gte] = new Date(startDate);
-      }
-      if (endDate) {
-        where.creditDate[Op.lte] = new Date(endDate);
-      }
-    }
 
-    const credits = await CreditTransaction.findAndCountAll({
+    const customers = await CreditCustomer.findAndCountAll({
       where,
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['customerName', 'ASC']],
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['firstName', 'lastName', 'username']
-        }
-      ]
+      order: [['customerName', 'ASC']]
     });
 
-    const totalOutstanding = credits.rows.reduce((sum, credit) => sum + credit.currentBalance, 0);
+    const totalOutstanding = customers.rows.reduce((sum, customer) => 
+      sum + parseFloat(customer.totalDebt), 0);
 
     res.json({
       success: true,
-      data: credits.rows,
+      data: customers.rows,
       summary: {
-        totalOutstanding: totalOutstanding
+        totalOutstanding: totalOutstanding.toFixed(2)
       },
       pagination: {
         currentPage: parseInt(page),
-        totalPages: Math.ceil(credits.count / limit),
-        totalCustomers: credits.count,
+        totalPages: Math.ceil(customers.count / limit),
+        totalCustomers: customers.count,
         limit: parseInt(limit)
       }
     });
@@ -74,49 +61,34 @@ router.get('/', authenticate, async (req, res, next) => {
   }
 });
 
-// @desc    Get single credit transaction
-// @route   GET /api/credit/:id
+// @desc    Get single credit customer with transaction history
+// @route   GET /api/credit/customers/:id
 // @access  Private
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/customers/:id', authenticateToken, async (req, res, next) => {
   try {
-    const credit = await CreditTransaction.findByPk(req.params.id, {
+    const customer = await CreditCustomer.findByPk(req.params.id, {
       include: [
         {
-          model: User,
-          as: 'user',
-          attributes: ['firstName', 'lastName', 'username']
+          model: CreditTransaction,
+          include: [
+            {
+              model: User,
+              as: 'recorder',
+              attributes: ['firstName', 'lastName', 'username']
+            }
+          ],
+          order: [['transactionDate', 'DESC']]
         }
       ]
     });
 
-    if (!credit) {
-      return next(new ErrorResponse('Credit transaction not found', 404));
+    if (!customer) {
+      return next(new ErrorResponse('Customer not found', 404));
     }
-
-    // Get credit history (sales)
-    const sales = await Sale.findAll({
-      where: { creditTransactionId: credit.id },
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['firstName', 'lastName', 'username']
-        },
-        {
-          model: Product,
-          as: 'product',
-          attributes: ['name', 'category']
-        }
-      ],
-      order: [['createdAt', 'DESC']]
-    });
 
     res.json({
       success: true,
-      data: {
-        ...credit.toJSON(),
-        sales
-      }
+      data: customer
     });
 
   } catch (error) {
@@ -124,16 +96,16 @@ router.get('/:id', authenticate, async (req, res, next) => {
   }
 });
 
-// @desc    Create new credit account
-// @route   POST /api/credit
+// @desc    Create new credit customer
+// @route   POST /api/credit/customers
 // @access  Private
-router.post('/', 
-  authenticate, 
-  canManageSales,
+router.post('/customers', 
+  authenticateToken, 
+  requirePermission('manage_sales'),
+  activityLogger('CREATE_CREDIT_CUSTOMER', 'credit_customers'),
   [
     body('customerName').notEmpty().withMessage('Customer name is required'),
-    body('creditLimit').isNumeric().withMessage('Credit limit must be a number'),
-    body('creditType').isIn(['customer', 'corporate', 'employee']).withMessage('Invalid credit type')
+    body('creditLimit').optional().isNumeric().withMessage('Credit limit must be a number')
   ],
   async (req, res, next) => {
     try {
@@ -145,26 +117,19 @@ router.post('/',
         });
       }
 
-      const {
-        customerName, customerPhone, customerAddress, creditLimit, 
-        creditType, notes
-      } = req.body;
+      const { customerName, phoneNumber, vehicleRegistration, creditLimit } = req.body;
 
-      const credit = await CreditTransaction.create({
-        userId: req.user.id,
+      const customer = await CreditCustomer.create({
         customerName,
-        customerPhone: customerPhone || null,
-        customerAddress: customerAddress || null,
+        phoneNumber: phoneNumber || null,
+        vehicleRegistration: vehicleRegistration || null,
         creditLimit: creditLimit || 0,
-        currentBalance: 0,
-        creditType: creditType || 'customer',
-        creditDate: new Date(),
-        notes: notes || null
+        totalDebt: 0
       });
 
       res.status(201).json({
         success: true,
-        data: credit
+        data: customer
       });
 
     } catch (error) {
@@ -173,15 +138,18 @@ router.post('/',
   }
 );
 
-// @desc    Update credit account
-// @route   PUT /api/credit/:id
+// @desc    Record credit sale
+// @route   POST /api/credit/sale
 // @access  Private
-router.put('/:id', 
-  authenticate, 
-  canManageSales,
+router.post('/sale', 
+  authenticateToken, 
+  requirePermission('manage_sales'),
+  activityLogger('CREDIT_SALE', 'credit_transactions'),
   [
-    body('creditLimit').optional().isNumeric().withMessage('Credit limit must be a number'),
-    body('isActive').optional().isBoolean().withMessage('isActive must be a boolean')
+    body('customerId').isInt().withMessage('Customer ID is required'),
+    body('fuelType').notEmpty().withMessage('Fuel type is required'),
+    body('liters').isNumeric().withMessage('Liters must be a number'),
+    body('amount').isNumeric().withMessage('Amount must be a number')
   ],
   async (req, res, next) => {
     try {
@@ -193,22 +161,50 @@ router.put('/:id',
         });
       }
 
-      const credit = await CreditTransaction.findByPk(req.params.id);
-      if (!credit) {
-        return next(new ErrorResponse('Credit transaction not found', 404));
+      const { customerId, fuelType, liters, amount, notes } = req.body;
+
+      const customer = await CreditCustomer.findByPk(customerId);
+      if (!customer) {
+        return next(new ErrorResponse('Customer not found', 404));
       }
 
-      const { creditLimit, isActive, notes } = req.body;
+      if (!customer.isActive) {
+        return res.status(400).json({
+          success: false,
+          message: 'Customer account is inactive'
+        });
+      }
 
-      await credit.update({
-        creditLimit: creditLimit !== undefined ? creditLimit : credit.creditLimit,
-        isActive: isActive !== undefined ? isActive : credit.isActive,
-        notes: notes || credit.notes
+      const newDebt = parseFloat(customer.totalDebt) + parseFloat(amount);
+      if (newDebt > customer.creditLimit) {
+        return res.status(400).json({
+          success: false,
+          message: 'Credit limit exceeded'
+        });
+      }
+
+      const transaction = await CreditTransaction.create({
+        customerId,
+        transactionType: 'credit_sale',
+        fuelType,
+        liters,
+        amount,
+        recordedBy: req.user.id,
+        notes: notes || null
       });
 
-      res.json({
+      await customer.update({
+        totalDebt: newDebt
+      });
+
+      res.status(201).json({
         success: true,
-        data: credit
+        data: transaction,
+        customer: {
+          id: customer.id,
+          name: customer.customerName,
+          totalDebt: newDebt
+        }
       });
 
     } catch (error) {
@@ -217,16 +213,17 @@ router.put('/:id',
   }
 );
 
-// @desc    Make payment to credit account
-// @route   POST /api/credit/:id/payment
+// @desc    Record payment
+// @route   POST /api/credit/payment
 // @access  Private
-router.post('/:id/payment', 
-  authenticate, 
-  canManageSales,
+router.post('/payment', 
+  authenticateToken, 
+  requirePermission('manage_sales'),
+  activityLogger('CREDIT_PAYMENT', 'credit_transactions'),
   [
-    body('amount').isNumeric().withMessage('Payment amount must be a number'),
-    body('paymentMethod').isIn(['cash', 'mpesa', 'card', 'bank_transfer']).withMessage('Invalid payment method'),
-    body('paymentReference').optional().isString().withMessage('Payment reference must be a string')
+    body('customerId').isInt().withMessage('Customer ID is required'),
+    body('amount').isNumeric().withMessage('Amount must be a number'),
+    body('paymentMethod').isIn(['cash', 'mpesa']).withMessage('Invalid payment method')
   ],
   async (req, res, next) => {
     try {
@@ -238,12 +235,12 @@ router.post('/:id/payment',
         });
       }
 
-      const credit = await CreditTransaction.findByPk(req.params.id);
-      if (!credit) {
-        return next(new ErrorResponse('Credit transaction not found', 404));
-      }
+      const { customerId, amount, paymentMethod, notes } = req.body;
 
-      const { amount, paymentMethod, paymentReference, notes } = req.body;
+      const customer = await CreditCustomer.findByPk(customerId);
+      if (!customer) {
+        return next(new ErrorResponse('Customer not found', 404));
+      }
 
       if (amount <= 0) {
         return res.status(400).json({
@@ -252,40 +249,34 @@ router.post('/:id/payment',
         });
       }
 
-      if (amount > credit.currentBalance) {
+      if (amount > customer.totalDebt) {
         return res.status(400).json({
           success: false,
-          message: 'Payment amount cannot exceed current balance'
+          message: 'Payment amount cannot exceed total debt'
         });
       }
 
-      // Create a sale record to represent the payment (negative amount)
-      const paymentSale = await Sale.create({
-        productId: null, // No product for payment
-        userId: req.user.id,
-        quantity: 0,
-        unitPrice: 0,
-        totalAmount: -amount, // Negative amount represents payment
+      const transaction = await CreditTransaction.create({
+        customerId,
+        transactionType: 'payment',
+        amount,
         paymentMethod,
-        paymentReference: paymentReference || null,
-        customerName: credit.customerName,
-        customerPhone: credit.customerPhone,
-        notes: notes || 'Credit payment',
-        isCompleted: true,
-        completedAt: new Date()
+        recordedBy: req.user.id,
+        notes: notes || null
       });
 
-      // Update credit balance
-      await credit.update({
-        currentBalance: credit.currentBalance - amount
+      const newDebt = parseFloat(customer.totalDebt) - parseFloat(amount);
+      await customer.update({
+        totalDebt: newDebt
       });
 
-      res.json({
+      res.status(201).json({
         success: true,
-        data: {
-          payment: paymentSale,
-          updatedCredit: credit,
-          message: 'Payment recorded successfully'
+        data: transaction,
+        customer: {
+          id: customer.id,
+          name: customer.customerName,
+          totalDebt: newDebt
         }
       });
 
@@ -295,49 +286,28 @@ router.post('/:id/payment',
   }
 );
 
-// @desc    Get credit statement
-// @route   GET /api/credit/:id/statement
+// @desc    Get outstanding debts summary
+// @route   GET /api/credit/outstanding
 // @access  Private
-router.get('/:id/statement', authenticate, async (req, res, next) => {
+router.get('/outstanding', authenticateToken, async (req, res, next) => {
   try {
-    const credit = await CreditTransaction.findByPk(req.params.id);
-    if (!credit) {
-      return next(new ErrorResponse('Credit transaction not found', 404));
-    }
-
-    const sales = await Sale.findAll({
-      where: { creditTransactionId: credit.id },
-      include: [
-        {
-          model: User,
-          as: 'user',
-          attributes: ['firstName', 'lastName', 'username']
-        },
-        {
-          model: Product,
-          as: 'product',
-          attributes: ['name', 'category']
-        }
-      ],
-      order: [['createdAt', 'ASC']]
+    const customers = await CreditCustomer.findAll({
+      where: {
+        totalDebt: { [Op.gt]: 0 },
+        isActive: true
+      },
+      order: [['totalDebt', 'DESC']]
     });
 
-    // Calculate running balance
-    let runningBalance = 0;
-    const statement = sales.map(sale => {
-      runningBalance += sale.totalAmount;
-      return {
-        ...sale.toJSON(),
-        runningBalance
-      };
-    });
+    const totalOutstanding = customers.reduce((sum, customer) => 
+      sum + parseFloat(customer.totalDebt), 0);
 
     res.json({
       success: true,
       data: {
-        credit,
-        statement,
-        currentBalance: credit.currentBalance
+        customers,
+        totalOutstanding: totalOutstanding.toFixed(2),
+        count: customers.length
       }
     });
 
@@ -346,28 +316,28 @@ router.get('/:id/statement', authenticate, async (req, res, next) => {
   }
 });
 
-// @desc    Delete credit account
-// @route   DELETE /api/credit/:id
+// @desc    Delete credit customer
+// @route   DELETE /api/credit/customers/:id
 // @access  Private
-router.delete('/:id', authenticate, canManageSales, async (req, res, next) => {
+router.delete('/customers/:id', authenticateToken, requirePermission('manage_sales'), async (req, res, next) => {
   try {
-    const credit = await CreditTransaction.findByPk(req.params.id);
-    if (!credit) {
-      return next(new ErrorResponse('Credit transaction not found', 404));
+    const customer = await CreditCustomer.findByPk(req.params.id);
+    if (!customer) {
+      return next(new ErrorResponse('Customer not found', 404));
     }
 
-    if (credit.currentBalance > 0) {
+    if (customer.totalDebt > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete credit account with outstanding balance'
+        message: 'Cannot delete customer with outstanding debt'
       });
     }
 
-    await credit.destroy();
+    await customer.destroy();
 
     res.json({
       success: true,
-      message: 'Credit account deleted successfully'
+      message: 'Customer deleted successfully'
     });
 
   } catch (error) {

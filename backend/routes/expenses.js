@@ -4,7 +4,7 @@ const { Op, Sequelize } = require('sequelize');
 const Expense = require('../models/expense');
 const Shift = require('../models/shift');
 const User = require('../models/user');
-const { authenticate, canManageExpenses } = require('../middleware/auth');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
@@ -12,7 +12,7 @@ const router = express.Router();
 // @desc    Get all expenses
 // @route   GET /api/expenses
 // @access  Private
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const { page = 1, limit = 20, userId, category, startDate, endDate, isApproved } = req.query;
     const offset = (page - 1) * limit;
@@ -89,7 +89,7 @@ router.get('/', authenticate, async (req, res, next) => {
 // @desc    Get single expense
 // @route   GET /api/expenses/:id
 // @access  Private
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/:id', authenticateToken, async (req, res, next) => {
   try {
     const expense = await Expense.findByPk(req.params.id, {
       include: [
@@ -129,8 +129,8 @@ router.get('/:id', authenticate, async (req, res, next) => {
 // @route   POST /api/expenses
 // @access  Private
 router.post('/', 
-  authenticate, 
-  canManageExpenses,
+  authenticateToken, 
+  requirePermission('manage_expenses'),
   [
     body('amount').isNumeric().withMessage('Amount must be a number'),
     body('description').notEmpty().withMessage('Description is required'),
@@ -193,8 +193,8 @@ router.post('/',
 // @route   PUT /api/expenses/:id
 // @access  Private
 router.put('/:id', 
-  authenticate, 
-  canManageExpenses,
+  authenticateToken, 
+  requirePermission('manage_expenses'),
   [
     body('amount').optional().isNumeric().withMessage('Amount must be a number'),
     body('description').optional().notEmpty().withMessage('Description cannot be empty'),
@@ -246,7 +246,7 @@ router.put('/:id',
 // @desc    Approve expense
 // @route   PUT /api/expenses/:id/approve
 // @access  Private
-router.put('/:id/approve', authenticate, canManageExpenses, async (req, res, next) => {
+router.put('/:id/approve', authenticateToken, requirePermission('manage_expenses'), async (req, res, next) => {
   try {
     const expense = await Expense.findByPk(req.params.id);
     if (!expense) {
@@ -279,7 +279,7 @@ router.put('/:id/approve', authenticate, canManageExpenses, async (req, res, nex
 // @desc    Delete expense
 // @route   DELETE /api/expenses/:id
 // @access  Private
-router.delete('/:id', authenticate, canManageExpenses, async (req, res, next) => {
+router.delete('/:id', authenticateToken, requirePermission('manage_expenses'), async (req, res, next) => {
   try {
     const expense = await Expense.findByPk(req.params.id);
     if (!expense) {

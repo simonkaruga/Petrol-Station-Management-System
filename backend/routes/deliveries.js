@@ -5,7 +5,7 @@ const Delivery = require('../models/delivery');
 const Product = require('../models/product');
 const Inventory = require('../models/inventory');
 const User = require('../models/user');
-const { authenticate, canManageInventory } = require('../middleware/auth');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const router = express.Router();
 // @desc    Get all deliveries
 // @route   GET /api/deliveries
 // @access  Private
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const { page = 1, limit = 20, productId, supplier, status, startDate, endDate } = req.query;
     const offset = (page - 1) * limit;
@@ -80,7 +80,7 @@ router.get('/', authenticate, async (req, res, next) => {
 // @desc    Get single delivery
 // @route   GET /api/deliveries/:id
 // @access  Private
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/:id', authenticateToken, async (req, res, next) => {
   try {
     const delivery = await Delivery.findByPk(req.params.id, {
       include: [
@@ -115,8 +115,8 @@ router.get('/:id', authenticate, async (req, res, next) => {
 // @route   POST /api/deliveries
 // @access  Private
 router.post('/', 
-  authenticate, 
-  canManageInventory,
+  authenticateToken, 
+  requirePermission('manage_inventory'),
   [
     body('productId').isInt({ min: 1 }).withMessage('Valid product ID is required'),
     body('quantity').isNumeric().withMessage('Quantity must be a number'),
@@ -196,8 +196,8 @@ router.post('/',
 // @route   PUT /api/deliveries/:id
 // @access  Private
 router.put('/:id', 
-  authenticate, 
-  canManageInventory,
+  authenticateToken, 
+  requirePermission('manage_inventory'),
   [
     body('status').isIn(['pending', 'received', 'cancelled']).withMessage('Invalid status')
   ],
@@ -237,7 +237,7 @@ router.put('/:id',
 // @desc    Receive delivery
 // @route   PUT /api/deliveries/:id/receive
 // @access  Private
-router.put('/:id/receive', authenticate, canManageInventory, async (req, res, next) => {
+router.put('/:id/receive', authenticateToken, requirePermission('manage_inventory'), async (req, res, next) => {
   try {
     const delivery = await Delivery.findByPk(req.params.id);
     if (!delivery) {

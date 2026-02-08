@@ -1,72 +1,50 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class CreditTransaction extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // Define associations
-      CreditTransaction.belongsTo(models.User, { foreignKey: 'userId' });
-      CreditTransaction.hasMany(models.Sale, { foreignKey: 'creditTransactionId' });
+      CreditTransaction.belongsTo(models.CreditCustomer, { foreignKey: 'customerId' });
+      CreditTransaction.belongsTo(models.User, { foreignKey: 'recordedBy', as: 'recorder' });
     }
   }
   
   CreditTransaction.init({
-    userId: {
+    customerId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Users',
+        model: 'credit_customers',
         key: 'id'
       }
     },
-    customerName: {
-      type: DataTypes.STRING,
+    transactionType: {
+      type: DataTypes.ENUM('credit_sale', 'payment'),
       allowNull: false
     },
-    customerPhone: {
-      type: DataTypes.STRING,
+    fuelType: {
+      type: DataTypes.STRING(20),
       allowNull: true
     },
-    customerAddress: {
-      type: DataTypes.TEXT,
+    liters: {
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true
     },
-    creditLimit: {
+    amount: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0,
-      validate: {
-        min: 0
-      }
+      allowNull: false
     },
-    currentBalance: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0
+    paymentMethod: {
+      type: DataTypes.ENUM('cash', 'mpesa'),
+      allowNull: true
     },
-    creditType: {
-      type: DataTypes.ENUM('customer', 'corporate', 'employee'),
-      defaultValue: 'customer'
-    },
-    isActive: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true
-    },
-    creditDate: {
+    transactionDate: {
       type: DataTypes.DATE,
-      allowNull: false,
       defaultValue: DataTypes.NOW
     },
-    approvedBy: {
+    recordedBy: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'Users',
         key: 'id'
@@ -81,5 +59,6 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'CreditTransaction',
     tableName: 'credit_transactions'
   });
+  
   return CreditTransaction;
 };

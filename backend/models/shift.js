@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
+    attendantName: {
+      type: DataTypes.STRING(100),
+      allowNull: true
+    },
     startTime: {
       type: DataTypes.DATE,
       allowNull: false
@@ -34,6 +38,71 @@ module.exports = (sequelize, DataTypes) => {
     endTime: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    // Fuel meter readings
+    petrolOpening: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    petrolClosing: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    dieselOpening: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    dieselClosing: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    keroseneOpening: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    keroseneClosing: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true
+    },
+    // Fuel payments
+    fuelCashCollected: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
+    },
+    fuelMpesaCollected: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
+    },
+    // Car wash
+    carWashesCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    carWashCash: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
+    },
+    // Parking
+    parkingFeesCollected: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
+    },
+    // Gas cylinders
+    gas6kgSold: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    gas13kgSold: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    gasCashCollected: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
+    },
+    gasMpesaCollected: {
+      type: DataTypes.DECIMAL(10, 2),
+      defaultValue: 0
     },
     openingCash: {
       type: DataTypes.DECIMAL(10, 2),

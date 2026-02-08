@@ -5,7 +5,7 @@ const Inventory = require('../models/inventory');
 const Product = require('../models/product');
 const Delivery = require('../models/delivery');
 const User = require('../models/user');
-const { authenticate, canManageInventory } = require('../middleware/auth');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const router = express.Router();
 // @desc    Get all inventory
 // @route   GET /api/inventory
 // @access  Private
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const { page = 1, limit = 20, lowStock, productId, location } = req.query;
     const offset = (page - 1) * limit;
@@ -89,7 +89,7 @@ router.get('/', authenticate, async (req, res, next) => {
 // @desc    Get single inventory item
 // @route   GET /api/inventory/:id
 // @access  Private
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/:id', authenticateToken, async (req, res, next) => {
   try {
     const inventory = await Inventory.findByPk(req.params.id, {
       include: [
@@ -124,8 +124,8 @@ router.get('/:id', authenticate, async (req, res, next) => {
 // @route   PUT /api/inventory/:id
 // @access  Private
 router.put('/:id', 
-  authenticate, 
-  canManageInventory,
+  authenticateToken, 
+  requirePermission('manage_inventory'),
   [
     body('quantity').isNumeric().withMessage('Quantity must be a number'),
     body('sellingPrice').isNumeric().withMessage('Selling price must be a number'),
@@ -179,8 +179,8 @@ router.put('/:id',
 // @route   POST /api/inventory/:id/adjust
 // @access  Private
 router.post('/:id/adjust', 
-  authenticate, 
-  canManageInventory,
+  authenticateToken, 
+  requirePermission('manage_inventory'),
   [
     body('adjustment').isNumeric().withMessage('Adjustment amount must be a number'),
     body('reason').notEmpty().withMessage('Reason for adjustment is required')
@@ -236,7 +236,7 @@ router.post('/:id/adjust',
 // @desc    Get inventory movements
 // @route   GET /api/inventory/:id/movements
 // @access  Private
-router.get('/:id/movements', authenticate, async (req, res, next) => {
+router.get('/:id/movements', authenticateToken, async (req, res, next) => {
   try {
     const inventory = await Inventory.findByPk(req.params.id);
     if (!inventory) {
@@ -272,7 +272,7 @@ router.get('/:id/movements', authenticate, async (req, res, next) => {
 // @desc    Get inventory summary
 // @route   GET /api/inventory/summary
 // @access  Private
-router.get('/summary', authenticate, async (req, res, next) => {
+router.get('/summary', authenticateToken, async (req, res, next) => {
   try {
     const summary = await Inventory.findAll({
       attributes: [

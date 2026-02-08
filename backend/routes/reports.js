@@ -8,7 +8,7 @@ const Product = require('../models/product');
 const Shift = require('../models/shift');
 const CreditTransaction = require('../models/creditTransaction');
 const User = require('../models/user');
-const { authenticate, canViewReports } = require('../middleware/auth');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
@@ -16,7 +16,7 @@ const router = express.Router();
 // @desc    Get sales report
 // @route   GET /api/reports/sales
 // @access  Private
-router.get('/sales', authenticate, canViewReports, async (req, res, next) => {
+router.get('/sales', authenticateToken, requirePermission('view_reports'), async (req, res, next) => {
   try {
     const { startDate, endDate, userId, productId, paymentMethod } = req.query;
 
@@ -98,7 +98,7 @@ router.get('/sales', authenticate, canViewReports, async (req, res, next) => {
 // @desc    Get inventory report
 // @route   GET /api/reports/inventory
 // @access  Private
-router.get('/inventory', authenticate, canViewReports, async (req, res, next) => {
+router.get('/inventory', authenticateToken, requirePermission('view_reports'), async (req, res, next) => {
   try {
     const { lowStock, expired, productId } = req.query;
 
@@ -163,7 +163,7 @@ router.get('/inventory', authenticate, canViewReports, async (req, res, next) =>
 // @desc    Get financial report
 // @route   GET /api/reports/financial
 // @access  Private
-router.get('/financial', authenticate, canViewReports, async (req, res, next) => {
+router.get('/financial', authenticateToken, requirePermission('view_reports'), async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -218,7 +218,7 @@ router.get('/financial', authenticate, canViewReports, async (req, res, next) =>
 // @desc    Get employee performance report
 // @route   GET /api/reports/employees
 // @access  Private
-router.get('/employees', authenticate, canViewReports, async (req, res, next) => {
+router.get('/employees', authenticateToken, requirePermission('view_reports'), async (req, res, next) => {
   try {
     const { startDate, endDate, userId } = req.query;
 
@@ -283,7 +283,7 @@ router.get('/employees', authenticate, canViewReports, async (req, res, next) =>
 // @desc    Get credit report
 // @route   GET /api/reports/credit
 // @access  Private
-router.get('/credit', authenticate, canViewReports, async (req, res, next) => {
+router.get('/credit', authenticateToken, requirePermission('view_reports'), async (req, res, next) => {
   try {
     const { startDate, endDate, status } = req.query;
 
@@ -340,7 +340,7 @@ router.get('/credit', authenticate, canViewReports, async (req, res, next) => {
 // @desc    Get product performance report
 // @route   GET /api/reports/products
 // @access  Private
-router.get('/products', authenticate, canViewReports, async (req, res, next) => {
+router.get('/products', authenticateToken, requirePermission('view_reports'), async (req, res, next) => {
   try {
     const { startDate, endDate, category } = req.query;
 

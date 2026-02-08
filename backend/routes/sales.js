@@ -7,7 +7,7 @@ const Inventory = require('../models/inventory');
 const Shift = require('../models/shift');
 const CreditTransaction = require('../models/creditTransaction');
 const User = require('../models/user');
-const { authenticate, canManageSales } = require('../middleware/auth');
+const { authenticateToken, requirePermission } = require('../middleware/auth');
 const ErrorResponse = require('../utils/errorResponse');
 
 const router = express.Router();
@@ -15,7 +15,7 @@ const router = express.Router();
 // @desc    Get all sales
 // @route   GET /api/sales
 // @access  Private
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   try {
     const { page = 1, limit = 20, startDate, endDate, paymentMethod, productId, userId, shiftId } = req.query;
     const offset = (page - 1) * limit;
@@ -90,7 +90,7 @@ router.get('/', authenticate, async (req, res, next) => {
 // @desc    Get single sale
 // @route   GET /api/sales/:id
 // @access  Private
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/:id', authenticateToken, async (req, res, next) => {
   try {
     const sale = await Sale.findByPk(req.params.id, {
       include: [
@@ -135,8 +135,8 @@ router.get('/:id', authenticate, async (req, res, next) => {
 // @route   POST /api/sales
 // @access  Private
 router.post('/', 
-  authenticate, 
-  canManageSales,
+  authenticateToken, 
+  requirePermission('manage_sales'),
   [
     body('productId').isInt({ min: 1 }).withMessage('Valid product ID is required'),
     body('quantity').isNumeric().withMessage('Quantity must be a number'),
@@ -284,8 +284,8 @@ router.post('/',
 // @route   PUT /api/sales/:id
 // @access  Private
 router.put('/:id', 
-  authenticate, 
-  canManageSales,
+  authenticateToken, 
+  requirePermission('manage_sales'),
   [
     body('quantity').optional().isNumeric().withMessage('Quantity must be a number'),
     body('paymentMethod').optional().isIn(['cash', 'mpesa', 'card', 'credit', 'bank_transfer']).withMessage('Invalid payment method'),
@@ -343,7 +343,7 @@ router.put('/:id',
 // @desc    Delete sale
 // @route   DELETE /api/sales/:id
 // @access  Private
-router.delete('/:id', authenticate, canManageSales, async (req, res, next) => {
+router.delete('/:id', authenticateToken, requirePermission('manage_sales'), async (req, res, next) => {
   try {
     const sale = await Sale.findByPk(req.params.id);
     if (!sale) {
@@ -372,7 +372,7 @@ router.delete('/:id', authenticate, canManageSales, async (req, res, next) => {
 // @desc    Complete sale
 // @route   PUT /api/sales/:id/complete
 // @access  Private
-router.put('/:id/complete', authenticate, canManageSales, async (req, res, next) => {
+router.put('/:id/complete', authenticateToken, requirePermission('manage_sales'), async (req, res, next) => {
   try {
     const sale = await Sale.findByPk(req.params.id);
     if (!sale) {
@@ -422,7 +422,7 @@ router.put('/:id/complete', authenticate, canManageSales, async (req, res, next)
 // @desc    Get sales summary
 // @route   GET /api/sales/summary
 // @access  Private
-router.get('/summary', authenticate, async (req, res, next) => {
+router.get('/summary', authenticateToken, async (req, res, next) => {
   try {
     const { startDate, endDate, userId } = req.query;
 
