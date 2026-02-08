@@ -8,10 +8,16 @@
    - **Name**: `wakaruku-db`
    - **Database**: `wakaruku_petrol_db`
    - **User**: `wakaruku_user`
-   - **Region**: Choose closest to your users
-   - **Plan**: Free (or Starter $7/month for production)
+   - **Region**: Choose closest to your users (e.g., Oregon)
+   - **Plan**: **Free** (or Starter $7/month for production)
 4. Click **Create Database**
-5. Copy the **Internal Database URL** (starts with `postgresql://`)
+5. Wait for database to be created (~2 minutes)
+6. **IMPORTANT**: Copy the **Internal Database URL**
+   - Look for "Internal Database URL" section
+   - Click the copy icon
+   - Format: `postgresql://username:password@host:5432/database`
+   - Example: `postgresql://wakaruku_user:abc123@dpg-xxxxx.oregon-postgres.render.com:5432/wakaruku_petrol_db`
+   - **Save this URL - you'll need it in Step 3!**
 
 ## Step 2: Deploy Backend
 
@@ -29,26 +35,39 @@
 
 ## Step 3: Set Environment Variables
 
-In the **Environment** section, add:
+In the **Environment** section, add these variables:
 
+| Key | Value |
+|-----|-------|
+| `NODE_ENV` | `production` |
+| `PORT` | `5000` |
+| `DATABASE_URL` | **Paste Internal Database URL from Step 1** |
+| `JWT_SECRET` | **Generate using command below** |
+| `JWT_REFRESH_SECRET` | **Generate using command below** |
+| `JWT_EXPIRES_IN` | `8h` |
+| `JWT_REFRESH_EXPIRES_IN` | `7d` |
+| `FRONTEND_URL` | Leave empty for now |
+| `ALLOWED_ORIGINS` | Leave empty for now |
+
+### DATABASE_URL Format:
 ```
-NODE_ENV=production
-PORT=5000
-DATABASE_URL=[paste Internal Database URL from Step 1]
-JWT_SECRET=[generate random 32+ character string]
-JWT_REFRESH_SECRET=[generate different random 32+ character string]
-JWT_EXPIRES_IN=8h
-JWT_REFRESH_EXPIRES_IN=7d
-FRONTEND_URL=[your frontend URL - add after frontend deployment]
-ALLOWED_ORIGINS=[your frontend URL - add after frontend deployment]
+postgresql://username:password@host:5432/database
+```
+👉 **Replace with the Internal Database URL from Render PostgreSQL**
+
+Example:
+```
+postgresql://wakaruku_user:abc123xyz@dpg-xxxxx.oregon-postgres.render.com:5432/wakaruku_petrol_db
 ```
 
-### Generate Secrets:
+### Generate JWT Secrets:
 ```bash
-# Run these commands to generate secure secrets:
+# Run these commands locally to generate secure secrets:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
+
+**Copy each output and paste as JWT_SECRET and JWT_REFRESH_SECRET**
 
 ## Step 4: Deploy
 
