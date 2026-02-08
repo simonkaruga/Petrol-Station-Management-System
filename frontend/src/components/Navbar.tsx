@@ -1,23 +1,65 @@
 import React from 'react';
-import { logout, getUser } from '../utils/auth';
+import { logout, getUser, isAdmin } from '../utils/auth';
 
 const Navbar = () => {
   const user = getUser();
+  const admin = isAdmin();
 
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <h2 className="text-xl font-semibold text-gray-900">Wakaruku Petrol Station</h2>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">Welcome, {user?.username}</span>
-            <button 
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              onClick={logout}
-            >
-              Logout
-            </button>
+    <header style={{
+      background: 'white',
+      borderBottom: '1px solid #e5e7eb',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100
+    }}>
+      <div style={{
+        maxWidth: '100%',
+        padding: '0 32px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        height: '64px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c' }}>Wakaruku Petrol Station</h2>
+          <span style={{
+            display: 'inline-block',
+            padding: '4px 12px',
+            background: admin ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#10b981',
+            color: 'white',
+            borderRadius: '12px',
+            fontSize: '11px',
+            fontWeight: '600',
+            letterSpacing: '0.5px'
+          }}>
+            {admin ? 'ADMIN' : 'MANAGER'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: '14px', fontWeight: '500', color: '#1a202c' }}>{user?.username}</p>
+            <p style={{ fontSize: '12px', color: '#6b7280' }}>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
           </div>
+          <button
+            onClick={logout}
+            style={{
+              background: '#ef4444',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+            onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
+          >
+            Logout
+          </button>
         </div>
       </div>
     </header>

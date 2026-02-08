@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 
 const Reports = () => {
   const [reportData, setReportData] = useState(null);
@@ -27,19 +29,16 @@ const Reports = () => {
   };
 
   useEffect(() => {
-    // Generate default sales report
     generateReport();
   }, []);
 
   const exportToCSV = () => {
     if (!reportData) return;
-
     const headers = Object.keys(reportData.data[0] || {});
     const csvContent = [
       headers.join(','),
       ...reportData.data.map(row => headers.map(header => row[header]).join(','))
     ].join('\n');
-
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -52,110 +51,109 @@ const Reports = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Reports</h1>
-      
-      <div className="bg-white p-6 rounded-lg shadow mb-6">
-        <h2 className="text-lg font-semibold mb-4">Generate Report</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Report Type</label>
-            <select
-              value={filters.reportType}
-              onChange={(e) => setFilters({...filters, reportType: e.target.value})}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-            >
-              <option value="sales">Sales Report</option>
-              <option value="deliveries">Delivery Report</option>
-              <option value="expenses">Expense Report</option>
-              <option value="credit">Credit Report</option>
-              <option value="inventory">Inventory Report</option>
-            </select>
+    <div>
+      <Sidebar />
+      <div style={{ marginLeft: '256px', minHeight: '100vh', background: '#f8f9fa' }}>
+        <Navbar />
+        <div style={{ padding: '32px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1a202c', marginBottom: '24px' }}>Reports</h1>
+          <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>Generate Report</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '4px' }}>Report Type</label>
+                <select
+                  value={filters.reportType}
+                  onChange={(e) => setFilters({...filters, reportType: e.target.value})}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }}
+                >
+                  <option value="sales">Sales Report</option>
+                  <option value="deliveries">Delivery Report</option>
+                  <option value="expenses">Expense Report</option>
+                  <option value="credit">Credit Report</option>
+                  <option value="inventory">Inventory Report</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '4px' }}>Start Date</label>
+                <input
+                  type="date"
+                  value={filters.startDate}
+                  onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '4px' }}>End Date</label>
+                <input
+                  type="date"
+                  value={filters.endDate}
+                  onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '14px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button
+                  onClick={generateReport}
+                  disabled={loading}
+                  style={{ width: '100%', background: '#667eea', color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
+                >
+                  {loading ? 'Generating...' : 'Generate Report'}
+                </button>
+              </div>
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Start Date</label>
-            <input
-              type="date"
-              value={filters.startDate}
-              onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700">End Date</label>
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-            />
-          </div>
-          
-          <div className="flex items-end">
-            <button
-              onClick={generateReport}
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? 'Generating...' : 'Generate Report'}
-            </button>
-          </div>
+          {reportData && (
+            <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '600' }}>
+                  {reportData.title} - {new Date(reportData.generatedAt).toLocaleDateString()}
+                </h2>
+                <button
+                  onClick={exportToCSV}
+                  style={{ background: '#10b981', color: 'white', padding: '10px 16px', borderRadius: '8px', border: 'none', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  Export to CSV
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                {reportData.summary && Object.entries(reportData.summary).map(([key, value]) => (
+                  <div key={key} style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: '500', color: '#6b7280' }}>{key}</h3>
+                    <p style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginTop: '4px' }}>
+                      {typeof value === 'number' ? value.toLocaleString() : value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ background: '#f9fafb' }}>
+                    <tr>
+                      {Object.keys(reportData.data[0] || {}).map((key) => (
+                        <th key={key} style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', borderBottom: '2px solid #e5e7eb' }}>
+                          {key}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportData.data.map((row, index) => (
+                      <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        {Object.values(row).map((value, cellIndex) => (
+                          <td key={cellIndex} style={{ padding: '12px', fontSize: '14px', color: '#1f2937' }}>
+                            {value}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {reportData && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">
-              {reportData.title} - {new Date(reportData.generatedAt).toLocaleDateString()}
-            </h2>
-            <button
-              onClick={exportToCSV}
-              className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
-            >
-              Export to CSV
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {reportData.summary && Object.entries(reportData.summary).map(([key, value]) => (
-              <div key={key} className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600">{key}</h3>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {typeof value === 'number' ? value.toLocaleString() : value}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  {Object.keys(reportData.data[0] || {}).map((key) => (
-                    <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {key}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {reportData.data.map((row, index) => (
-                  <tr key={index}>
-                    {Object.values(row).map((value, cellIndex) => (
-                      <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {value}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -146,7 +146,7 @@ Wakaruku-Petrol-Station-Management-System/
 ## 🔐 Default Credentials
 
 After setup, login with:
-- **Username:** `admin`
+- **Username:** `simon`
 - **Password:** `admin123`
 
 **⚠️ IMPORTANT:** Change this password immediately after first login!

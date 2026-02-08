@@ -403,67 +403,6 @@ const Login = () => {
               </button>
             </form>
           )}
-
-          {/* Demo Credentials */}
-          {!showReset && (
-            <div style={{
-              marginTop: '32px',
-              paddingTop: '24px',
-              borderTop: '1px solid #e5e7eb'
-            }}>
-              <p style={{
-                fontSize: '12px',
-                color: '#9ca3af',
-                textAlign: 'center',
-                marginBottom: '12px',
-                fontWeight: '500'
-              }}>
-                DEMO CREDENTIALS
-              </p>
-              <div style={{
-                background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
-                borderRadius: '12px',
-                padding: '16px',
-                border: '1px solid #667eea30'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '8px'
-                }}>
-                  <span style={{ fontSize: '14px', color: '#6b7280' }}>Username:</span>
-                  <code style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#667eea',
-                    background: 'white',
-                    padding: '4px 12px',
-                    borderRadius: '6px'
-                  }}>
-                    admin
-                  </code>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <span style={{ fontSize: '14px', color: '#6b7280' }}>Password:</span>
-                  <code style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#667eea',
-                    background: 'white',
-                    padding: '4px 12px',
-                    borderRadius: '6px'
-                  }}>
-                    admin123
-                  </code>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer */}

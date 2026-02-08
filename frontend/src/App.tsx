@@ -2,9 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { isAuthenticated, isAdmin } from './utils/auth';
+import { AdminEditProvider } from './components/AdminEditToggle';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ShiftReport from './pages/ShiftReport';
+import ShiftHistory from './pages/ShiftHistory';
+import MonthlyReport from './pages/MonthlyReport';
 import Delivery from './pages/Delivery';
 import Credit from './pages/Credit';
 import Expenses from './pages/Expenses';
@@ -15,7 +18,8 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
+    <AdminEditProvider>
+      <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route
@@ -31,6 +35,22 @@ function App() {
           element={
             <ProtectedRoute>
               <ShiftReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shift-history"
+          element={
+            <ProtectedRoute>
+              <ShiftHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/monthly-report"
+          element={
+            <ProtectedRoute>
+              <MonthlyReport />
             </ProtectedRoute>
           }
         />
@@ -87,6 +107,7 @@ function App() {
         }}
       />
     </Router>
+    </AdminEditProvider>
   );
 }
 
