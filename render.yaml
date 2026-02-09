@@ -24,7 +24,7 @@ services:
       - key: JWT_REFRESH_EXPIRES_IN
         value: 7d
       - key: ALLOWED_ORIGINS
-        value: https://wakaruku-petrol-station-management.vercel.app,https://wakaruku-petrol-station-frontend.vercel.app,https://wakaruku-petrol-station-management-system.onrender.com,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
+        value: https://wakaruku-petrol-station-management.vercel.app,https://wakaruku-petrol-station-management-system.onrender.com,http://localhost:3000
       - key: FRONTEND_URL
         value: https://wakaruku-petrol-station-management.vercel.app
 
