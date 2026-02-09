@@ -31,7 +31,7 @@ const MonthlyReport = () => {
     setLoading(true);
     try {
       const response = await api.get(`/shifts?month=${selectedMonth}`);
-      const shiftsData = response.data.map((shift: any) => {
+      const shiftsData = response.data.data.map((shift: any) => {
         const petrolSold = (parseFloat(shift.petrolClosing) || 0) - (parseFloat(shift.petrolOpening) || 0);
         const dieselSold = (parseFloat(shift.dieselClosing) || 0) - (parseFloat(shift.dieselOpening) || 0);
         const keroseneSold = (parseFloat(shift.keroseneClosing) || 0) - (parseFloat(shift.keroseneOpening) || 0);

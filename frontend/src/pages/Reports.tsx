@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import api from '../utils/api';
 
 const Reports = () => {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -13,16 +15,12 @@ const Reports = () => {
 
   const generateReport = async () => {
     setLoading(true);
+    setError('');
     try {
-      const response = await fetch(`/api/reports/${filters.reportType}?startDate=${filters.startDate}&endDate=${filters.endDate}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const data = await response.json();
-      setReportData(data);
-    } catch (error) {
-      console.error('Error generating report:', error);
+      const response = await api.get(`/reports/${filters.reportType}?startDate=${filters.startDate}&endDate=${filters.endDate}`);
+      setReportData(response.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to generate report');
     } finally {
       setLoading(false);
     }
@@ -57,6 +55,9 @@ const Reports = () => {
         <Navbar />
         <div style={{ padding: '32px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1a202c', marginBottom: '24px' }}>Reports</h1>
+          
+          {error && <div style={{ background: '#fee2e2', borderLeft: '4px solid #ef4444', color: '#991b1b', padding: '16px 20px', borderRadius: '8px', marginBottom: '24px' }}>{error}</div>}
+          
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '24px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>Generate Report</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
