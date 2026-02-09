@@ -88,7 +88,36 @@ const ShiftReport = () => {
 
     try {
       await api.post('/shifts', formData);
-      setSuccess('Shift report recorded successfully! This record is now locked and cannot be edited.');
+      
+      // Update tank stock in settings after successful shift submission
+      const saved = localStorage.getItem('stationSettings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        
+        // Calculate new tank stock levels
+        const newPetrolStock = petrolRemaining;
+        const newDieselStock = dieselRemaining;
+        const newKeroseneStock = keroseneRemaining;
+        const newGas6kgStock = gas6kgRemaining;
+        const newGas13kgStock = gas13kgRemaining;
+        
+        // Update settings with new stock levels
+        const updatedSettings = {
+          ...settings,
+          petrolTankStock: newPetrolStock.toString(),
+          dieselTankStock: newDieselStock.toString(),
+          keroseneTankStock: newKeroseneStock.toString(),
+          gas6kgStock: newGas6kgStock.toString(),
+          gas13kgStock: newGas13kgStock.toString()
+        };
+        
+        localStorage.setItem('stationSettings', JSON.stringify(updatedSettings));
+        
+        // Dispatch event to notify other components
+        window.dispatchEvent(new Event('settingsUpdated'));
+      }
+      
+      setSuccess('Shift report recorded successfully! Tank stock levels have been updated.');
       setShowReport(true);
       setIsSubmitted(true);
       setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
