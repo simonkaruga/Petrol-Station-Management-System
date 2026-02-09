@@ -75,6 +75,28 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Wakaruku Petrol Station Management System API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      products: '/api/products',
+      sales: '/api/sales',
+      reports: '/api/reports',
+      inventory: '/api/inventory',
+      expenses: '/api/expenses',
+      shifts: '/api/shifts',
+      deliveries: '/api/deliveries',
+      credit: '/api/credit',
+      prices: '/api/prices'
+    }
+  });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
