@@ -5,9 +5,9 @@ import api from '../utils/api';
 import { isAdmin } from '../utils/auth';
 
 const ShiftHistory = () => {
-  const [shifts, setShifts] = useState([]);
+  const [shifts, setShifts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedShift, setSelectedShift] = useState(null);
+  const [selectedShift, setSelectedShift] = useState<any>(null);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState<any>({});
   const admin = isAdmin();
