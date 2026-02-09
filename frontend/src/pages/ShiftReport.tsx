@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import api from '../utils/api';
+import { isAdmin } from '../utils/auth';
 
 const ShiftReport = () => {
+  const admin = isAdmin();
   const [formData, setFormData] = useState({
     attendantName: '',
     shiftStartTime: '',
@@ -206,8 +208,8 @@ const ShiftReport = () => {
                 <h4 style={{ marginBottom: '12px', color: '#1e40af' }}>⛽ Petrol</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label>Tank Stock (L)</label>
-                    <input type="number" step="0.01" name="petrolTankStock" value={formData.petrolTankStock} onChange={handleChange} disabled={isSubmitted} />
+                    <label>Tank Stock (L) {!admin && '🔒'}</label>
+                    <input type="number" step="0.01" name="petrolTankStock" value={formData.petrolTankStock} onChange={handleChange} disabled={isSubmitted || !admin} style={{ background: !admin ? '#f3f4f6' : undefined, cursor: !admin ? 'not-allowed' : undefined }} />
                   </div>
                   <div className="form-group">
                     <label>Opening (L)</label>
@@ -243,8 +245,8 @@ const ShiftReport = () => {
                 <h4 style={{ marginBottom: '12px', color: '#92400e' }}>⛽ Diesel</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label>Tank Stock (L)</label>
-                    <input type="number" step="0.01" name="dieselTankStock" value={formData.dieselTankStock} onChange={handleChange} />
+                    <label>Tank Stock (L) {!admin && '🔒'}</label>
+                    <input type="number" step="0.01" name="dieselTankStock" value={formData.dieselTankStock} onChange={handleChange} disabled={isSubmitted || !admin} style={{ background: !admin ? '#f3f4f6' : undefined, cursor: !admin ? 'not-allowed' : undefined }} />
                   </div>
                   <div className="form-group">
                     <label>Opening (L)</label>
@@ -280,8 +282,8 @@ const ShiftReport = () => {
                 <h4 style={{ marginBottom: '12px', color: '#6b21a8' }}>⛽ Kerosene</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label>Tank Stock (L)</label>
-                    <input type="number" step="0.01" name="keroseneTankStock" value={formData.keroseneTankStock} onChange={handleChange} />
+                    <label>Tank Stock (L) {!admin && '🔒'}</label>
+                    <input type="number" step="0.01" name="keroseneTankStock" value={formData.keroseneTankStock} onChange={handleChange} disabled={isSubmitted || !admin} style={{ background: !admin ? '#f3f4f6' : undefined, cursor: !admin ? 'not-allowed' : undefined }} />
                   </div>
                   <div className="form-group">
                     <label>Opening (L)</label>
@@ -347,16 +349,16 @@ const ShiftReport = () => {
               <div style={{ marginBottom: '20px', padding: '16px', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '15px', marginBottom: '16px' }}>
                   <div className="form-group">
-                    <label>6kg Stock Available</label>
-                    <input type="number" name="gas6kgStock" value={formData.gas6kgStock} onChange={handleChange} style={{ background: '#fff', fontWeight: '600' }} />
+                    <label>6kg Stock Available {!admin && '🔒'}</label>
+                    <input type="number" name="gas6kgStock" value={formData.gas6kgStock} onChange={handleChange} disabled={isSubmitted || !admin} style={{ background: !admin ? '#f3f4f6' : '#fff', fontWeight: '600', cursor: !admin ? 'not-allowed' : undefined }} />
                   </div>
                   <div className="form-group">
                     <label>6kg Sold</label>
                     <input type="number" name="gas6kgSold" value={formData.gas6kgSold} onChange={handleChange} />
                   </div>
                   <div className="form-group">
-                    <label>13kg Stock Available</label>
-                    <input type="number" name="gas13kgStock" value={formData.gas13kgStock} onChange={handleChange} style={{ background: '#fff', fontWeight: '600' }} />
+                    <label>13kg Stock Available {!admin && '🔒'}</label>
+                    <input type="number" name="gas13kgStock" value={formData.gas13kgStock} onChange={handleChange} disabled={isSubmitted || !admin} style={{ background: !admin ? '#f3f4f6' : '#fff', fontWeight: '600', cursor: !admin ? 'not-allowed' : undefined }} />
                   </div>
                   <div className="form-group">
                     <label>13kg Sold</label>
