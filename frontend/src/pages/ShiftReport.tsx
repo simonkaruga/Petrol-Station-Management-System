@@ -487,7 +487,7 @@ const ShiftReport = () => {
             }}>
               <div style={{ textAlign: 'center', marginBottom: '30px', borderBottom: '2px solid #667eea', paddingBottom: '20px' }}>
                 <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#1a202c', marginBottom: '8px' }}>SHIFT REPORT</h2>
-                <p style={{ color: '#718096' }}>Wakaruku Petrol Station</p>
+                <p style={{ color: '#718096' }}>Petrol Station</p>
                 <p style={{ fontSize: '14px', color: '#718096' }}>{new Date().toLocaleString()}</p>
               </div>
 

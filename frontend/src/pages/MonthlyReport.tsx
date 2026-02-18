@@ -157,7 +157,7 @@ const MonthlyReport = () => {
                   <p style={{ color: '#718096', fontSize: '16px' }}>
                     {new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </p>
-                  <p style={{ color: '#718096', fontSize: '14px' }}>Wakaruku Petrol Station</p>
+                  <p style={{ color: '#718096', fontSize: '14px' }}>Petrol Station</p>
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>

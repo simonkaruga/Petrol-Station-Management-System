@@ -71,7 +71,7 @@ const Sidebar = () => {
             color: 'white',
             letterSpacing: '-0.5px'
           }}>
-            Wakaruku Station
+            Petrol Station
           </h1>
           <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>Management System</p>
         </div>

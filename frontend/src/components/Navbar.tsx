@@ -23,7 +23,7 @@ const Navbar = () => {
         height: '64px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c' }}>Wakaruku Petrol Station</h2>
+          <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#1a202c' }}>Petrol Station</h2>
           <span style={{
             display: 'inline-block',
             padding: '4px 12px',

@@ -91,7 +91,7 @@ const Login = () => {
             marginBottom: '8px',
             textShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}>
-            Wakaruku Petrol Station
+            Petrol Station
           </h1>
           <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '16px' }}>
             Management System
@@ -412,7 +412,7 @@ const Login = () => {
           fontSize: '13px',
           marginTop: '24px'
         }}>
-          © 2024 Wakaruku Petrol Station. All rights reserved.
+          © 2024 Petrol Station. All rights reserved.
         </p>
       </div>
     </div>
